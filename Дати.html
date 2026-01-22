@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Span Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #555;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+      border-radius: 4px;
+    }
+    .result div {
+      margin: 8px 0;
+    }
+    .copy-btn {
+      background-color: #2196F3;
+      margin-left: 10px;
+      padding: 5px 15px;
+      font-size: 14px;
+    }
+    .copy-btn:hover {
+      background-color: #0b7dda;
+    }
+    .formatted-output {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-left: 4px solid #2196F3;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .formatted-output div {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Calendar Span Calculator</h1>
+
+  <div class="input-group">
+    <label>Дата (стрінгою):</label>
+    <input type="text" id="dateString" placeholder="8 Elesias 815" oninput="parseDate()">
+  </div>
+
+  <div class="input-group">
+    <label>Day:</label>
+    <input type="number" id="day" min="1" max="30" value="8">
+  </div>
+
+  <div class="input-group">
+    <label>Month:</label>
+    <select id="month" onchange="updateDateString()">
+      <option value="0">Hammer</option>
+      <option value="1">Midwinter</option>
+      <option value="2">Alturiak</option>
+      <option value="3">Ches</option>
+      <option value="4">Tarsakh</option>
+      <option value="5">Greengrass</option>
+      <option value="6">Mirtul</option>
+      <option value="7">Kythorn</option>
+      <option value="8">Flamerule</option>
+      <option value="9">Midsummer</option>
+      <option value="10">Shieldmeet</option>
+      <option value="11" selected>Elesias</option>
+      <option value="12">Eleint</option>
+      <option value="13">Highharvestide</option>
+      <option value="14">Marpenoth</option>
+      <option value="15">Uktar</option>
+      <option value="16">Feast of the Moon</option>
+      <option value="17">Nightal</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label>Year:</label>
+    <input type="number" id="year" value="815" oninput="updateDateString()">
+  </div>
+
+  <div class="input-group">
+    <label>Span (days):</label>
+    <input type="number" id="span" min="0" value="7">
+  </div>
+
+  <button onclick="calculate()">Calculate</button>
+
+  <div id="result" class="result" style="display:none;"></div>
+
+  <div id="formattedOutput" class="formatted-output" style="display:none;">
+    <div id="outputText"></div>
+    <button class="copy-btn" onclick="copyToClipboard()">Скопіювати в буфер обміну</button>
+  </div>
+</div>
+
+<script>
+  const months = [
+    {name: "Hammer", days: 30},
+    {name: "Midwinter", days: 1},
+    {name: "Alturiak", days: 30},
+    {name: "Ches", days: 30},
+    {name: "Tarsakh", days: 30},
+    {name: "Greengrass", days: 1},
+    {name: "Mirtul", days: 30},
+    {name: "Kythorn", days: 30},
+    {name: "Flamerule", days: 30},
+    {name: "Midsummer", days: 1},
+    {name: "Shieldmeet", days: 1},
+    {name: "Elesias", days: 30},
+    {name: "Eleint", days: 30},
+    {name: "Highharvestide", days: 1},
+    {name: "Marpenoth", days: 30},
+    {name: "Uktar", days: 30},
+    {name: "Feast of the Moon", days: 1},
+    {name: "Nightal", days: 30}
+  ];
+
+  function addDays(day, monthIndex, year, daysToAdd) {
+    let currentDay = day;
+    let currentMonth = monthIndex;
+    let currentYear = year;
+
+    while (daysToAdd > 0) {
+      const daysInMonth = months[currentMonth].days;
+      const daysLeftInMonth = daysInMonth - currentDay;
+
+      if (daysToAdd <= daysLeftInMonth) {
+        currentDay += daysToAdd;
+        daysToAdd = 0;
+      } else {
+        daysToAdd -= (daysLeftInMonth + 1);
+        currentDay = 1;
+        currentMonth++;
+        if (currentMonth >= months.length) {
+          currentMonth = 0;
+          currentYear++;
+        }
+      }
+    }
+
+    return {day: currentDay, month: currentMonth, year: currentYear};
+  }
+
+  function parseDate() {
+    const input = document.getElementById('dateString').value.trim();
+    if (!input) return;
+
+    const parts = input.split(' ');
+    if (parts.length < 2) return;
+
+    const day = parseInt(parts[0]);
+    const monthName = parts[1].toLowerCase();
+    let year = 815;
+
+    if (parts.length >= 3) {
+      year = parseInt(parts[2]);
+    }
+
+    const monthIndex = months.findIndex(m => m.name.toLowerCase().startsWith(monthName));
+
+    if (monthIndex !== -1 && day >= 1 && day <= months[monthIndex].days) {
+      document.getElementById('day').value = day;
+      document.getElementById('month').value = monthIndex;
+      document.getElementById('year').value = year;
+    }
+  }
+
+  function updateDateString() {
+    const day = document.getElementById('day').value;
+    const monthIndex = document.getElementById('month').value;
+    const year = document.getElementById('year').value;
+
+    if (day && monthIndex !== '' && year) {
+      const dateStr = `${day} ${months[monthIndex].name} ${year}`;
+      document.getElementById('dateString').value = dateStr;
+    }
+  }
+
+  function calculate() {
+    const day = parseInt(document.getElementById('day').value);
+    const monthIndex = parseInt(document.getElementById('month').value);
+    const year = parseInt(document.getElementById('year').value);
+    const span = parseInt(document.getElementById('span').value);
+
+    const startDate = addDays(day, monthIndex, year, 7);
+    const endDate = addDays(startDate.day, startDate.month, startDate.year, span);
+
+    const result = document.getElementById('result');
+    result.innerHTML = `
+                <div><strong>Старт (введена дата + 7 днів):</strong> ${startDate.day} ${months[startDate.month].name} ${startDate.year} рік після Потопу</div>
+                <div><strong>Кінець (старт + span):</strong> ${endDate.day} ${months[endDate.month].name} ${endDate.year} рік після Потопу</div>
+            `;
+    result.style.display = 'block';
+
+    // Format output
+    const formattedText = `${startDate.day} ${months[startDate.month].name} ${startDate.year} рік після Потопу
+${endDate.day} ${months[endDate.month].name} ${endDate.year} рік після Потопу`;
+
+    document.getElementById('outputText').innerText = formattedText;
+    document.getElementById('formattedOutput').style.display = 'block';
+  }
+
+  function copyToClipboard() {
+    const text = document.getElementById('outputText').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = 'Скопійовано!';
+      setTimeout(() => {
+        btn.innerText = originalText;
+      }, 2000);
+    });
+  }
+
+  // Initialize date string on load
+  window.onload = function() {
+    updateDateString();
+  };
+</script>
+</body>
+</html>
