@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Calculator on Square Image</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        button {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+        }
+
+        button.clear-btn {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+            box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        button.save-btn {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        button.save-btn:hover {
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+        }
+
+        button.ships-btn {
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            box-shadow: 0 4px 15px rgba(162, 155, 254, 0.4);
+        }
+
+        button.ships-btn:hover {
+            box-shadow: 0 6px 20px rgba(162, 155, 254, 0.6);
+        }
+
+        button.origin-btn {
+            background: linear-gradient(45deg, #fdcb6e, #f39c12);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        }
+
+        button.origin-btn:hover {
+            box-shadow: 0 6px 20px rgba(253, 203, 110, 0.6);
+        }
+
+        button.origin-btn.active {
+            background: linear-gradient(45deg, #e17055, #d63031);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .ships-panel {
+            background: rgba(162, 155, 254, 0.1);
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ships-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .ship-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ship-input-group input[type="text"],
+        .ship-input-group input[type="number"] {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .ship-input-group button {
+            padding: 8px 15px;
+        }
+
+        .ships-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .ship-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .ship-item:hover {
+            border-color: #a29bfe;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(162, 155, 254, 0.3);
+        }
+
+        .ship-item.selected {
+            border-color: #6c5ce7;
+            background: rgba(162, 155, 254, 0.1);
+        }
+
+        .ship-info {
+            flex: 1;
+        }
+
+        .ship-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .ship-speed {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .ship-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .ship-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .ship-delete:hover {
+            background: #ee5a24;
+            transform: scale(1.05);
+        }
+
+        .info {
+            padding: 15px 20px;
+            background: rgba(79, 172, 254, 0.1);
+            color: #333;
+            text-align: center;
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 500px;
+            background: linear-gradient(45deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        #imageCanvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            cursor: crosshair;
+            transition: transform 0.3s ease;
+            background: white;
+        }
+
+
+        .point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ff4757, #c44569);
+            border: 2px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.5);
+            animation: pointPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pointPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        .distance-text {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-image {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .control-group {
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            input[type="number"] {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🗺️ Distance Calculator</h1>
+        <p>Upload a square image and measure distances between points</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <input type="file" id="imageInput" accept="image/*">
+            <label for="imageInput" class="file-label">📁 Load Image</label>
+        </div>
+
+        <div class="control-group">
+            <label for="sideLength">Side length (miles):</label>
+            <input type="number" id="sideLength" min="0" step="0.1" placeholder="10">
+        </div>
+
+        <button onclick="setScale()">📏 Set Scale</button>
+
+        <div class="control-group">
+            <label for="shipSpeed">Ship speed (miles/day):</label>
+            <input type="number" id="shipSpeed" min="0" step="1" placeholder="100" value="100">
+        </div>
+
+        <button onclick="clearPoints()" class="clear-btn">🗑️ Clear Points</button>
+        <button onclick="changeOrigin()" class="origin-btn">📍 Змінити оріджин</button>
+        <button onclick="saveImage()" class="save-btn">💾 Save Image</button>
+        <button onclick="calculator.toggleShipsPanel()" class="ships-btn">🚢 Ships</button>
+    </div>
+
+    <div id="shipsPanel" class="ships-panel" style="display: none;">
+        <h3>Saved Ships</h3>
+        <div class="ship-input-group">
+            <input type="text" id="shipName" placeholder="Ship name">
+            <input type="number" id="shipSpeedInput" placeholder="Speed (mi/day)" min="0" step="1">
+            <button onclick="calculator.addShipFromInput()">➕ Add</button>
+        </div>
+        <div id="shipsList" class="ships-list"></div>
+    </div>
+
+    <div class="controls">
+        <button onclick="calculator.savePointsToStorage()" class="save-btn">💾 Save Points</button>
+        <button onclick="calculator.loadPointsFromStorage()" class="load-btn">📂 Load Points</button>
+        <button onclick="calculator.exportPointsToJSON()" class="export-btn">📤 Export JSON</button>
+        <input type="file" id="jsonInput" accept=".json" style="display: none;" onchange="calculator.importPointsFromJSON(event)">
+        <button onclick="document.getElementById('jsonInput').click()" class="import-btn">📥 Import JSON</button>
+    </div>
+
+    <div class="info" id="infoText">
+        Load an image and set the side length, then click on points to measure distances
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="imageCanvas" width="600" height="600"></canvas>
+    </div>
+</div>
+
+<script>
+    class DistanceCalculator {
+        constructor() {
+            this.canvas = document.getElementById('imageCanvas');
+            this.ctx = this.canvas.getContext('2d');
+            this.image = null;
+            this.sideLengthMiles = 0;
+            this.scaleFactor = 1; // pixels per mile
+            this.points = [];
+            this.displaySize = 600;
+            this.actualImageSize = 0;
+            this.centerPoint = null; // Store the center point
+            this.shipSpeed = 100; // Default ship speed in miles per day
+            this.ships = this.loadShips(); // Load saved ships from localStorage
+            this.originChangeMode = false; // Mode for changing origin point
+
+            this.setupEventListeners();
+            this.drawPlaceholder();
+            this.renderShipsList();
+        }
+
+        setupEventListeners() {
+            document.getElementById('imageInput').addEventListener('change', (e) => this.loadImage(e));
+            document.getElementById('sideLength').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.setScale();
+            });
+            document.getElementById('shipSpeed').addEventListener('input', (e) => {
+                this.shipSpeed = parseFloat(e.target.value) || 100;
+                this.redrawAllPoints();
+            });
+            this.canvas.addEventListener('click', (e) => this.onCanvasClick(e));
+            window.addEventListener('resize', () => this.resizeCanvas());
+        }
+
+        drawPlaceholder() {
+            this.ctx.fillStyle = '#f8f9fa';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.ctx.fillStyle = '#6c757d';
+            this.ctx.font = '18px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('Click "Load Image" to start', this.canvas.width / 2, this.canvas.height / 2);
+        }
+
+        loadImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.image = new Image();
+                this.image.onload = () => {
+                    this.checkAndProcessImage();
+                };
+                this.image.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        checkAndProcessImage() {
+            const { width, height } = this.image;
+
+            if (width !== height) {
+                const proceed = confirm(
+                    `Image is ${width}x${height} pixels (not square). ` +
+                    'Do you want to crop it to a square? (Center crop will be applied)'
+                );
+                if (!proceed) return;
+            }
+
+            this.actualImageSize = Math.min(width, height);
+            this.displayImage();
+            this.updateInfo(`Image loaded: ${this.actualImageSize}x${this.actualImageSize} pixels. Set the side length in miles.`);
+        }
+
+        displayImage() {
+            if (!this.image) return;
+
+            // Clear canvas
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            const { width, height } = this.image;
+            const minSize = Math.min(width, height);
+
+            // Calculate crop area (center crop)
+            const cropX = (width - minSize) / 2;
+            const cropY = (height - minSize) / 2;
+
+            // Draw the cropped square image
+            this.ctx.drawImage(
+                this.image,
+                cropX, cropY, minSize, minSize, // source
+                0, 0, this.displaySize, this.displaySize // destination
+            );
+
+            // Clear points when new image is loaded
+            this.points = [];
+            this.centerPoint = null;
+        }
+
+        setScale() {
+            const sideLengthInput = document.getElementById('sideLength').value;
+            this.sideLengthMiles = parseFloat(sideLengthInput);
+
+            if (!this.sideLengthMiles || this.sideLengthMiles <= 0) {
+                alert('Please enter a valid positive number for side length');
+                return;
+            }
+
+            if (!this.image) {
+                alert('Please load an image first');
+                return;
+            }
+
+            this.scaleFactor = this.displaySize / this.sideLengthMiles;
+            this.updateInfo(
+                `Scale set: ${this.sideLengthMiles} miles per side ` +
+                `(${this.scaleFactor.toFixed(2)} pixels per mile). Click on points to measure distances.`
+            );
+        }
+
+        onCanvasClick(event) {
+            if (!this.image || !this.sideLengthMiles) {
+                alert('Please load an image and set the side length first');
+                return;
+            }
+
+            const rect = this.canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            // Check if click is within canvas bounds
+            if (x < 0 || x >= this.displaySize || y < 0 || y >= this.displaySize) {
+                return;
+            }
+
+            // If in origin change mode, set new origin
+            if (this.originChangeMode) {
+                this.setOrigin(x, y);
+                this.disableOriginChangeMode();
+                return;
+            }
+
+            this.addPoint(x, y);
+        }
+
+        addPoint(x, y) {
+            // If no center point exists, don't add regular points
+            if (!this.centerPoint) {
+                this.setOrigin(x, y);
+                return;
+            }
+
+            const pointId = this.points.length + 1;
+            const point = { x, y, id: pointId };
+            this.points.push(point);
+
+            // Draw regular point
+            this.drawPoint(x, y);
+
+            // Calculate distance only to center point
+            const distanceToCenter = this.calculateDistanceToCenter(point);
+
+            // Display distance text
+            this.displayDistanceText(x, y, distanceToCenter);
+
+            // Update info
+            this.updatePointInfo(pointId, distanceToCenter);
+        }
+
+        drawCenterPoint(x, y) {
+            this.ctx.fillStyle = '#00b894';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 3;
+
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            this.ctx.fill();
+            this.ctx.stroke();
+        }
+
+        drawPoint(x, y) {
+            this.ctx.fillStyle = '#ff4757';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            this.ctx.fill();
+            this.ctx.stroke();
+        }
+
+        calculateDistanceToCenter(point) {
+            if (!this.centerPoint) return 0;
+
+            const pixelDistance = Math.sqrt(
+                Math.pow(point.x - this.centerPoint.x, 2) +
+                Math.pow(point.y - this.centerPoint.y, 2)
+            );
+            return pixelDistance / this.scaleFactor;
+        }
+
+        displayDistanceText(x, y, distance) {
+            // Only show distance if there is a center point
+            if (!this.centerPoint || distance === 0) return;
+
+            let textX = x + 15;
+            let textY = y - 5;
+
+            // Adjust position if text would go off canvas
+            if (textX + 80 > this.displaySize) textX = x - 90;
+            if (textY - 10 < 0) textY = y + 20;
+
+            // Calculate days based on ship speed
+            const days = this.shipSpeed > 0 ? distance / this.shipSpeed : 0;
+
+            // Display distance in miles and days
+            const distanceText = `${distance.toFixed(2)}mi / ${days.toFixed(1)}d`;
+
+            // Draw text directly (no background box)
+            this.ctx.fillStyle = '#000000';
+            this.ctx.font = 'bold 14px Arial';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 3;
+
+            // Add white stroke for better visibility
+            this.ctx.strokeText(distanceText, textX, textY);
+            this.ctx.fillText(distanceText, textX, textY);
+        }
+
+        updatePointInfo(pointId, distance) {
+            const days = this.shipSpeed > 0 ? distance / this.shipSpeed : 0;
+            this.updateInfo(`Точка ${pointId - 1}: ${distance.toFixed(2)} миль (${days.toFixed(1)} днів)`);
+        }
+
+        redrawAllPoints() {
+            if (!this.image) return;
+
+            // Redraw the image without clearing points
+            this.redrawImage();
+
+            // Redraw all points and their labels
+            this.points.forEach((point, index) => {
+                if (index === 0) {
+                    this.drawCenterPoint(point.x, point.y);
+                } else {
+                    this.drawPoint(point.x, point.y);
+                    const distanceToCenter = this.calculateDistanceToCenter(point);
+                    this.displayDistanceText(point.x, point.y, distanceToCenter);
+                }
+            });
+        }
+
+        redrawImage() {
+            if (!this.image) return;
+
+            // Clear canvas
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            const { width, height } = this.image;
+            const minSize = Math.min(width, height);
+
+            // Calculate crop area (center crop)
+            const cropX = (width - minSize) / 2;
+            const cropY = (height - minSize) / 2;
+
+            // Draw the cropped square image
+            this.ctx.drawImage(
+                this.image,
+                cropX, cropY, minSize, minSize,
+                0, 0, this.displaySize, this.displaySize
+            );
+        }
+
+        // Ships management
+        loadShips() {
+            const saved = localStorage.getItem('savedShips');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        saveShips() {
+            localStorage.setItem('savedShips', JSON.stringify(this.ships));
+        }
+
+        addShip(name, speed) {
+            if (!name || !speed || speed <= 0) return false;
+
+            const ship = {
+                id: Date.now(),
+                name: name,
+                speed: parseFloat(speed)
+            };
+
+            this.ships.push(ship);
+            this.saveShips();
+            this.renderShipsList();
+            return true;
+        }
+
+        deleteShip(id) {
+            this.ships = this.ships.filter(ship => ship.id !== id);
+            this.saveShips();
+            this.renderShipsList();
+        }
+
+        selectShip(speed) {
+            this.shipSpeed = speed;
+            document.getElementById('shipSpeed').value = speed;
+            this.redrawAllPoints();
+        }
+
+        renderShipsList() {
+            const listElement = document.getElementById('shipsList');
+            if (!listElement) return;
+
+            if (this.ships.length === 0) {
+                listElement.innerHTML = '<p style="color: #666; font-style: italic;">No saved ships yet. Add one above!</p>';
+                return;
+            }
+
+            listElement.innerHTML = this.ships.map(ship => `
+                    <div class="ship-item" onclick="calculator.selectShip(${ship.speed})">
+                        <div class="ship-info">
+                            <div class="ship-name">${ship.name}</div>
+                            <div class="ship-speed">${ship.speed} mi/day</div>
+                        </div>
+                        <div class="ship-actions">
+                            <button class="ship-delete" onclick="event.stopPropagation(); calculator.deleteShip(${ship.id})">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        updateInfo(text) {
+            document.getElementById('infoText').textContent = text;
+        }
+
+        clearPoints() {
+            this.points = [];
+            this.centerPoint = null;
+            if (this.image) {
+                this.redrawImage();
+                // Set default center point again
+                this.setDefaultCenterPoint();
+                this.updateInfo('Точки очищено. Оріджин по центру.');
+            } else {
+                this.drawPlaceholder();
+                this.updateInfo('Load an image and set the side length, then click on points to measure distances');
+            }
+        }
+
+        setOrigin(x, y) {
+            // Remove old center point from points array if exists
+            if (this.points.length > 0 && this.points[0].id === 1) {
+                // Keep other points, just update center
+            }
+
+            // Update center point coordinates
+            const newCenter = { x, y, id: 1 };
+
+            if (this.points.length > 0) {
+                this.points[0] = newCenter;
+            } else {
+                this.points.push(newCenter);
+            }
+
+            this.centerPoint = newCenter;
+
+            // Redraw everything
+            this.redrawAllPoints();
+            this.updateInfo(`Оріджин встановлено в (${x.toFixed(0)}, ${y.toFixed(0)}). Клікніть для вимірювання відстаней.`);
+        }
+
+        setDefaultCenterPoint() {
+            const centerX = this.displaySize / 2;
+            const centerY = this.displaySize / 2;
+            this.setOrigin(centerX, centerY);
+        }
+
+        enableOriginChangeMode() {
+            this.originChangeMode = true;
+            document.querySelector('.origin-btn').classList.add('active');
+            this.updateInfo('Клікніть на карті щоб встановити новий оріджин...');
+        }
+
+        disableOriginChangeMode() {
+            this.originChangeMode = false;
+            document.querySelector('.origin-btn').classList.remove('active');
+        }
+
+        resizeCanvas() {
+            // Keep canvas size fixed for simplicity
+            // In a more advanced version, you could make it responsive
+        }
+
+        saveImage() {
+            if (!this.image) {
+                alert('Please load an image first');
+                return;
+            }
+
+            // Create a temporary canvas for the final image
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = this.displaySize;
+            tempCanvas.height = this.displaySize;
+
+            // Draw the image
+            const { width, height } = this.image;
+            const minSize = Math.min(width, height);
+            const cropX = (width - minSize) / 2;
+            const cropY = (height - minSize) / 2;
+
+            tempCtx.drawImage(
+                this.image,
+                cropX, cropY, minSize, minSize,
+                0, 0, this.displaySize, this.displaySize
+            );
+
+            // Draw all points and their distance labels
+            this.points.forEach((point, index) => {
+                if (index === 0) {
+                    // Draw center point
+                    tempCtx.fillStyle = '#00b894';
+                    tempCtx.strokeStyle = '#ffffff';
+                    tempCtx.lineWidth = 3;
+                    tempCtx.beginPath();
+                    tempCtx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+                    tempCtx.fill();
+                    tempCtx.stroke();
+                } else {
+                    // Draw regular point
+                    tempCtx.fillStyle = '#ff4757';
+                    tempCtx.strokeStyle = '#ffffff';
+                    tempCtx.lineWidth = 2;
+                    tempCtx.beginPath();
+                    tempCtx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+                    tempCtx.fill();
+                    tempCtx.stroke();
+
+                    // Calculate distance to center point only
+                    const centerPoint = this.points[0];
+                    const pixelDistance = Math.sqrt(
+                        Math.pow(point.x - centerPoint.x, 2) +
+                        Math.pow(point.y - centerPoint.y, 2)
+                    );
+                    const mileDistance = pixelDistance / this.scaleFactor;
+
+                    // Calculate days
+                    const days = this.shipSpeed > 0 ? mileDistance / this.shipSpeed : 0;
+
+                    // Draw distance text
+                    let textX = point.x + 15;
+                    let textY = point.y - 5;
+
+                    if (textX + 80 > this.displaySize) textX = point.x - 90;
+                    if (textY - 10 < 0) textY = point.y + 20;
+
+                    const distanceText = `${mileDistance.toFixed(2)}mi / ${days.toFixed(1)}d`;
+
+                    tempCtx.fillStyle = '#000000';
+                    tempCtx.font = 'bold 14px Arial';
+                    tempCtx.strokeStyle = '#ffffff';
+                    tempCtx.lineWidth = 3;
+
+                    tempCtx.strokeText(distanceText, textX, textY);
+                    tempCtx.fillText(distanceText, textX, textY);
+                }
+            });
+
+            // Convert to blob and download
+            tempCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'distance-measured-image.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+    }
+
+    // Initialize the application
+    const calculator = new DistanceCalculator();
+
+    // Load default image (Океанія.png with 2000 miles scale)
+    (function loadDefaultImage() {
+        const img = new Image();
+        img.onload = () => {
+            calculator.image = img;
+            calculator.actualImageSize = Math.min(img.width, img.height);
+            calculator.displayImage();
+
+            // Set default scale to 2000 miles
+            calculator.sideLengthMiles = 2000;
+            document.getElementById('sideLength').value = 2000;
+            calculator.scaleFactor = calculator.displaySize / calculator.sideLengthMiles;
+
+            // Set default center point in the middle
+            calculator.setDefaultCenterPoint();
+            calculator.updateInfo('Океанія завантажена. Масштаб: 2000 миль. Клікніть щоб виміряти відстань.');
+        };
+        img.onerror = () => {
+            console.log('Default image not found');
+        };
+        img.src = 'Океанія.png';
+    })();
+
+    // Global functions for button clicks
+    function setScale() {
+        calculator.setScale();
+    }
+
+    function clearPoints() {
+        calculator.clearPoints();
+    }
+
+    function changeOrigin() {
+        if (calculator.originChangeMode) {
+            calculator.disableOriginChangeMode();
+        } else {
+            calculator.enableOriginChangeMode();
+        }
+    }
+
+    function saveImage() {
+        calculator.saveImage();
+    }
+
+    function toggleShipsPanel() {
+        const panel = document.getElementById('shipsPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function addShip() {
+        const nameInput = document.getElementById('shipName');
+        const speedInput = document.getElementById('shipSpeedInput');
+
+        const name = nameInput.value.trim();
+        const speed = parseFloat(speedInput.value);
+
+        if (!name) {
+            alert('Please enter a ship name');
+            return;
+        }
+
+        if (!speed || speed <= 0) {
+            alert('Please enter a valid speed');
+            return;
+        }
+
+        if (calculator.addShip(name, speed)) {
+            nameInput.value = '';
+            speedInput.value = '';
+        }
+    }
+</script>
+</body>
+</html>
